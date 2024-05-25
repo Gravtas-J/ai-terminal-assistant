@@ -170,8 +170,8 @@ def generate_chat_gpt_messages(user_input):
 def chat(messages, model='llama3'):
     try:
         # print("Sending the following messages to Ollama API:")
-        for message in messages:
-            print(message)
+        # for message in messages:
+        #     print(message)
         response = ollama.chat(model=model, messages=messages)
         # print("Received response from Ollama API:", response)
         
@@ -218,12 +218,12 @@ def main():
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf8')
     messages = generate_chat_gpt_messages(user_input)
 
-    if '--debug' in options:
-        # print the role and content of each message if debugging
-        for message in messages:
-            print(
-                f"{color_comment}{message['role']}: {message['content']}{reset}")
-        sys.exit(0)
+    # if '--debug' in options:
+    #     # print the role and content of each message if debugging
+    #     for message in messages:
+    #         print(
+    #             f"{color_comment}{message['role']}: {message['content']}{reset}")
+    #     sys.exit(0)
 
     print(f"{color_comment}🤖 Thinking ...{reset}", end='')
     sys.stdout.flush()
