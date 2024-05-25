@@ -9,6 +9,7 @@ common:
         If the instruction is not clear, use a comment to ask for clarification.
         If you need to output a literal string that the user needs to write, which isn't a command or comment, prefix it with #> .
         Use cli tools where possible (such as gh, aws, azure).
+        any output that isn't commands prefix with #
         The shell is running on the following system:
         {system_info}
         Shell version: {shell_version}.

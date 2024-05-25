@@ -3,7 +3,7 @@ import re
 import openai
 import os
 import sys
-
+import ollama
 import yaml
 from pynput.keyboard import Controller
 import textwrap
@@ -12,13 +12,15 @@ import platform
 import shutil
 import time
 import pyautogui
+from dotenv import load_dotenv
 
 # =============================================================================
 # CONFIGURATION
 # =============================================================================
 
 # Set up OpenAI API
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Define the keyboard controller
 kbd = Controller()
@@ -148,20 +150,43 @@ def generate_chat_gpt_messages(user_input):
     return common_messages + shell_messages + [user_message]
 
 
-def get_bash_command(messages):
-    response = openai.ChatCompletion.create(
-        # model="gpt-3.5-turbo",
-        model="gpt-4",
-        messages=messages,
-        max_tokens=1000,
-        n=1,
-        stop=None,
-        temperature=0.7,
-        request_timeout=30
-    )
+# def get_bash_command(messages):
+#     response = openai.ChatCompletion.create(
+#         model="gpt-4",
+#         messages=messages,
+#         max_tokens=1000,
+#         n=1,
+#         stop=None,
+#         temperature=0.7,
+#         request_timeout=30
+#     )
 
-    bash_command = response['choices'][0]['message']['content'].strip()
-    return bash_command
+#     bash_command = response['choices'][0]['message']['content'].strip()
+#     return bash_command
+
+# =============================================================================
+# OLLAMA FUNCTION
+# =============================================================================
+def chat(messages, model='llama3'):
+    try:
+        # print("Sending the following messages to Ollama API:")
+        for message in messages:
+            print(message)
+        response = ollama.chat(model=model, messages=messages)
+        # print("Received response from Ollama API:", response)
+        
+        # Ensure the response is in the expected format
+        if isinstance(response, dict) and 'message' in response and 'content' in response['message']:
+            return response['message']['content']
+        else:
+            raise ValueError("Unexpected response format")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        error_message = str(e).lower()
+        if "not found" in error_message:
+            return f"Model '{model}' not found. Please refer to Documentation at https://ollama.com/library."
+        else:
+            return f"An unexpected error occurred with model '{model}': {str(e)}"
 
 # =============================================================================
 # MAIN FUNCTION
@@ -202,7 +227,7 @@ def main():
 
     print(f"{color_comment}🤖 Thinking ...{reset}", end='')
     sys.stdout.flush()
-    bash_command = get_bash_command(messages)
+    bash_command = chat(messages)  # swappy swappy
     # Overwrite the "thinking" message
     print(f"\r{' ' * 80}\r", end='')
     os.system('')
@@ -211,10 +236,8 @@ def main():
     # Get all lines that are not comments
     def normalize_command(command):
         return re.sub(r'\s*&& \\\s*$', '', command.strip(';').strip())
-    
+
     def get_executable_commands(command):
-        #return [normalize_command(command) for command in bash_command.splitlines() if not command.startswith('#') and len(normalize_command(command))]
-        # rewrite as loop:
         commands = []
         for command in bash_command.splitlines():
             if command.startswith('#'):
@@ -238,7 +261,7 @@ def main():
             print(f"{color_comment}{comment}{reset}")
         # Print out the executable command in yellow, if there are multiple commands
         elif len(line) and len(executable_commands) > 1:
-            print(f"  {color_command}{line}{reset}")
+            print(f"  {color_command}{line}{reset}\n")
 
     sys.stdout.flush()
 
