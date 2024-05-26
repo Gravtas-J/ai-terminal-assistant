@@ -19,8 +19,6 @@ from dotenv import load_dotenv
 # =============================================================================
 
 # Set up OpenAI API
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Define the keyboard controller
 kbd = Controller()
@@ -169,12 +167,7 @@ def generate_chat_gpt_messages(user_input):
 # =============================================================================
 def chat(messages, model='llama3'):
     try:
-        # print("Sending the following messages to Ollama API:")
-        # for message in messages:
-        #     print(message)
         response = ollama.chat(model=model, messages=messages)
-        # print("Received response from Ollama API:", response)
-        
         # Ensure the response is in the expected format
         if isinstance(response, dict) and 'message' in response and 'content' in response['message']:
             return response['message']['content']
@@ -197,11 +190,8 @@ def main():
     if len(sys.argv) != 2:
         print("Usage: python ai.py \"<natural language command>\"")
         sys.exit(1)
-
     user_input = sys.argv[1]
-
     options = []
-
     # remove flags from the start of the input and add them to the options list
     while user_input.startswith('-'):
         option, user_input = user_input.split(' ', 1)
@@ -217,13 +207,12 @@ def main():
     os.system('')
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf8')
     messages = generate_chat_gpt_messages(user_input)
-
-    # if '--debug' in options:
-    #     # print the role and content of each message if debugging
-    #     for message in messages:
-    #         print(
-    #             f"{color_comment}{message['role']}: {message['content']}{reset}")
-    #     sys.exit(0)
+    if '--debug' in options:
+        # print the role and content of each message if debugging
+        for message in messages:
+            print(
+                f"{color_comment}{message['role']}: {message['content']}{reset}")
+        sys.exit(0)
 
     print(f"{color_comment}🤖 Thinking ...{reset}", end='')
     sys.stdout.flush()
@@ -258,7 +247,7 @@ def main():
         if line.startswith('#'):
             comment = textwrap.fill(
                 line, width=80, initial_indent='  ', subsequent_indent='  ')
-            print(f"{color_comment}{comment}{reset}")
+            print(f"{color_comment}{comment}{reset}\n")
         # Print out the executable command in yellow, if there are multiple commands
         elif len(line) and len(executable_commands) > 1:
             print(f"  {color_command}{line}{reset}\n")
